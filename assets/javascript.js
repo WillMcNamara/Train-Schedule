@@ -49,6 +49,46 @@ $(document).ready(function(){
         $("#rate-input").val("");
     })
     
+    database.ref().on("child_added", function(snap) {
+        console.log(snap.val());
+
+        var sv = snap.val();
+    
+        var newName = sv.name;
+        var newDest = sv.destination;
+        var newFreq = sv.freq;
+        var newTime = sv.time;
+    
+        var inputTime = moment(newTime, "hh:mm");
+        var formTime = inputTime.format('LT');
+        //get remainder of current time minus first train, and subtract frequency by result to find time until next train.
+        var minutesAway = newFreq - ((moment().diff(inputTime, "minutes")) % newFreq)
+        //format next time as function of current time and minutes until next train        
+        var nextTime = moment().add(minutesAway, 'minutes').format('LT');
+        //time until first train if before first train of day
+        var first = inputTime.diff(moment(), "minutes")
+
+
+        var newRow = $("<tr>");
+        newRow.append("<td>" + newName + "</td>");
+        newRow.append("<td>" + newDest + "</td>");
+        newRow.append("<td>" + newFreq + "</td>");
+        
+        //if first train has come then apply schedule, otherwise next time is first train
+        if (moment().diff(inputTime, "minutes") > 0) {
+            newRow.append("<td>" + nextTime + "</td>");
+            newRow.append("<td>" + minutesAway + "</td>");
+        }
+        else {
+            newRow.append("<td>" + formTime + "</td>");
+            newRow.append("<td>" + first + "</td>");
+        }
+        console.log(newRow);
+    
+    
+        $("tbody").append(newRow);
+       
+    })
 })
 
 
