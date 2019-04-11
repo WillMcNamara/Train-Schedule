@@ -18,6 +18,7 @@ var config = {
 firebase.initializeApp(config);
 
 var database = firebase.database();
+var id = 0;
 
 $(document).ready(function(){
 
@@ -44,9 +45,9 @@ $(document).ready(function(){
         database.ref().push(newTrain);
 
         $("#name-input").val("");
-        $("#date-input").val("");
-        $("#role-input").val("");
-        $("#rate-input").val("");
+        $("#destination-input").val("");
+        $("#freq-input").val("");
+        $("#time-input").val("");
     })
     
     database.ref().on("child_added", function(snap) {
@@ -58,37 +59,64 @@ $(document).ready(function(){
         var newDest = sv.destination;
         var newFreq = sv.freq;
         var newTime = sv.time;
+
+        id++;
     
+        //making inputTime readable by moment
         var inputTime = moment(newTime, "hh:mm");
+        
+        //formatting time for page
         var formTime = inputTime.format('LT');
+        
         //get remainder of current time minus first train, and subtract frequency by result to find time until next train.
         var minutesAway = newFreq - ((moment().diff(inputTime, "minutes")) % newFreq)
+        
         //format next time as function of current time and minutes until next train        
         var nextTime = moment().add(minutesAway, 'minutes').format('LT');
+        
         //time until first train if before first train of day
-        var first = inputTime.diff(moment(), "minutes")
-
+        var tilFirst = inputTime.diff(moment(), "minutes")
 
         var newRow = $("<tr>");
         newRow.append("<td>" + newName + "</td>");
         newRow.append("<td>" + newDest + "</td>");
-        newRow.append("<td>" + newFreq + "</td>");
+        newRow.append("<td id='freq" + id + "'>" + newFreq + "</td>");
         
         //if first train has come then apply schedule, otherwise next time is first train
         if (moment().diff(inputTime, "minutes") > 0) {
-            newRow.append("<td>" + nextTime + "</td>");
-            newRow.append("<td>" + minutesAway + "</td>");
+            newRow.append("<td id='next" + id + "'>" + nextTime + "</td>");
+            newRow.append("<td id='mins" + id + "'>" + minutesAway + "</td>");
         }
         else {
-            newRow.append("<td>" + formTime + "</td>");
-            newRow.append("<td>" + first + "</td>");
+            newRow.append("<td id='next" + id + "'>" + formTime + "</td>");
+            newRow.append("<td id='mins" + id + "'>" + tilFirst + "</td>");
         }
-        console.log(newRow);
-    
     
         $("tbody").append(newRow);
        
     })
+    
+//bonus update every minute
+    function update(){
+        for (i = 1; i - 1 < id; i++){
+            
+            var mins = parseInt($("#mins" + i).text())
+            var freq = parseInt($("#freq" + i).text())
+            var next = $("#next" + i)
+            var nextMoment = moment(next.text(), 'LT')
+            var changeNext = nextMoment.add(freq, "minute").format('LT')
+
+            if (mins > 0) {
+                $("#mins" + i).text(mins - 1);
+            }
+            else {
+                $("#mins" + i).text(freq);
+                $("#next" + i).text(changeNext)
+            }
+        }
+    }
+    setInterval(update, 60000);
+
 })
 
 
