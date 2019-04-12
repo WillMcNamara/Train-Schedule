@@ -18,6 +18,8 @@ var config = {
 firebase.initializeApp(config);
 
 var database = firebase.database();
+
+//var used for creating row ids
 var id = 0;
 
 $(document).ready(function(){
@@ -83,7 +85,7 @@ $(document).ready(function(){
         newRow.append("<td id='freq" + id + "'>" + newFreq + "</td>");
         
         //if first train has come then apply schedule, otherwise next time is first train
-        if (moment().diff(inputTime, "minutes") > 0) {
+        if (moment().diff(inputTime, "minutes") > 1) {
             newRow.append("<td id='next" + id + "'>" + nextTime + "</td>");
             newRow.append("<td id='mins" + id + "'>" + minutesAway + "</td>");
         }
@@ -98,7 +100,7 @@ $(document).ready(function(){
     
 //bonus update every minute
     function update(){
-        for (i = 1; i - 1 < id; i++){
+        for (i = 1; i <= id; i++){
             
             var mins = parseInt($("#mins" + i).text())
             var freq = parseInt($("#freq" + i).text())
@@ -106,7 +108,7 @@ $(document).ready(function(){
             var nextMoment = moment(next.text(), 'LT')
             var changeNext = nextMoment.add(freq, "minute").format('LT')
 
-            if (mins > 0) {
+            if (mins > 1) {
                 $("#mins" + i).text(mins - 1);
             }
             else {
@@ -115,7 +117,7 @@ $(document).ready(function(){
             }
         }
     }
-    setInterval(update, 60000);
+    setInterval(update, 5000);
 
 })
 
